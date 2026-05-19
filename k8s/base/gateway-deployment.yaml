@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-gateway
+  namespace: ai-inference
+  labels:
+    app: inference-gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: inference-gateway
+  template:
+    metadata:
+      labels:
+        app: inference-gateway
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: gateway
+          image: ai-inference-gateway:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: BACKEND_URLS
+              value: "http://ollama-0.ollama.ai-inference.svc.cluster.local:11434,http://ollama-1.ollama.ai-inference.svc.cluster.local:11434,http://ollama-2.ollama.ai-inference.svc.cluster.local:11434"
+            - name: ROUTING_ALGORITHM
+              value: "weighted_latency"
+            - name: HEALTH_CHECK_INTERVAL
+              value: "5"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inference-gateway
+  namespace: ai-inference
+  labels:
+    app: inference-gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: inference-gateway
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
