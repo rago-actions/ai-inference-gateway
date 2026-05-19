@@ -28,7 +28,7 @@ spec:
               name: http
           env:
             - name: BACKEND_URLS
-              value: "http://ollama-0.ollama.ai-inference.svc.cluster.local:11434,http://ollama-1.ollama.ai-inference.svc.cluster.local:11434,http://ollama-2.ollama.ai-inference.svc.cluster.local:11434"
+              value: "http://ollama-0.ai-inference.svc.cluster.local:11434,http://ollama-1.ai-inference.svc.cluster.local:11434,http://ollama-2.ai-inference.svc.cluster.local:11434"
             - name: ROUTING_ALGORITHM
               value: "weighted_latency"
             - name: HEALTH_CHECK_INTERVAL
